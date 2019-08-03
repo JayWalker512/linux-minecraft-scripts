@@ -1,5 +1,14 @@
 #!/bin/bash
 
+md5sc()
+{
+	local target="$1"
+	local checksumString=$(md5sum "$target")
+	local checksum=${checksumString:0:32}
+	echo "$checksum" > "$target.md5"
+	echo "$checksum $target"
+}
+
 # Minecraft Backup Script
 # Github: https://github.com/cranstonide/linux-minecraft-scripts
 
@@ -30,9 +39,12 @@ tar -cvzf $backupDest/$serverNick-$backupStamp.tar.gz $minecraftDir/*
 # Don't forget to take the server out of readonly mode.
 screen -p 0 -S minecraft -X eval "stuff \"save-on\"\015"
 
+#make checksum of backup
+md5sc $backupDest/$serverNick-$backupStamp.tar.gz
+
 # Wait a second for the gnu-screen to allow another stuffing and optionally alert users that the backup has been completed.
 sleep 1
 screen -p 0 -S minecraft -X eval "stuff \"say Backup has been completed.\"\015"
 
-# (Optionally) Remove all old (older than 7 days) backups to cut down on disk utilization.
-find $backupDest* -mtime +7 -exec rm {} -fv \;
+# (Optionally) Remove all old (older than 5 days) backups to cut down on disk utilization.
+find $backupDest* -mtime +5 -exec rm {} -fv \;
